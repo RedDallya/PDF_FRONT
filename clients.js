@@ -112,7 +112,8 @@ document.addEventListener("click", async e => {
     setActiveClientId(null);
     setSelectedClientName("");
     setSelectedTravelName("");
-    setView("clientes");
+
+    setView("cliente"); // ✅ FIX
     setClientTab("ficha");
 
     clearClientForm();
