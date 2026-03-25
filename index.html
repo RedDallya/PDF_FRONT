@@ -11,7 +11,6 @@
 </head>
 
 <body>
-  <!-- LOGIN SCREEN -->
   <section id="login-screen" class="vh-100 d-flex justify-content-center align-items-center">
     <form data-login-form class="card p-4" style="width:320px">
       <h4 class="mb-3 text-center">Iniciar sesión</h4>
@@ -23,7 +22,6 @@
 
   <main id="app-screen" class="container my-4 d-none">
 
-    <!-- NAV SUPERIOR -->
     <section class="card p-3 mb-4">
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -44,7 +42,6 @@
       </div>
     </section>
 
-    <!-- VISTA CLIENTES -->
     <section class="card p-4 mb-4" data-view="clientes">
       <div class="section-header mb-3">
         <h2 class="mb-0">Clientes</h2>
@@ -66,7 +63,6 @@
       </div>
     </section>
 
-    <!-- VISTA CLIENTE -->
     <section class="card p-4 mb-4 d-none" data-view="cliente">
 
       <div class="section-header mb-3">
@@ -79,7 +75,6 @@
         </div>
       </div>
 
-      <!-- SELECT CLIENTE -->
       <div class="row g-3 mb-4">
         <div class="col-md-6">
           <label class="form-label small">Seleccionar cliente</label>
@@ -95,7 +90,6 @@
         </div>
       </div>
 
-      <!-- NAV CLIENTE -->
       <div class="client-nav mb-4 d-flex gap-2 flex-wrap" data-client-nav>
         <button type="button" class="btn btn-sm btn-outline-secondary active" data-client-tab="ficha">
           Ficha del cliente
@@ -110,7 +104,6 @@
         </button>
       </div>
 
-      <!-- FICHA CLIENTE -->
       <div class="client-panel" data-client-panel="ficha">
         <div class="client-card">
 
@@ -183,7 +176,6 @@
         </div>
       </div>
 
-      <!-- DOCUMENTACIÓN CLIENTE -->
       <div class="client-panel d-none" data-client-panel="documentacion">
         <div class="client-section" data-client-section="documentacion">
 
@@ -235,25 +227,10 @@
         </div>
       </div>
 
-      <!-- VIAJES ASOCIADOS -->
       <div class="client-panel d-none" data-client-panel="viajes">
         <div class="card border-0 shadow-sm p-3">
           <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
             <h4 class="mb-0">Viajes asociados</h4>
-
-            <div class="d-flex gap-2 flex-wrap">
-              <button type="button" class="btn btn-sm btn-outline-secondary" data-duplicate-travel-global>
-                Duplicar viaje
-              </button>
-
-              <button type="button" class="btn btn-sm btn-outline-success" data-add-travel>
-                Agregar viaje
-              </button>
-
-              <button type="button" class="btn btn-sm btn-outline-danger" data-delete-travel-global>
-                Eliminar viaje
-              </button>
-            </div>
           </div>
 
           <div class="row g-3 align-items-end mb-3">
@@ -269,15 +246,27 @@
             </div>
           </div>
 
-          <div class="travel-tabs" data-travel-tabs></div>
+          <div class="travel-tabs mb-3" data-travel-tabs></div>
+
+          <div class="d-flex gap-2 flex-wrap">
+            <button type="button" class="btn btn-sm btn-outline-success" data-add-travel>
+              Agregar viaje
+            </button>
+
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-duplicate-travel-global>
+              Duplicar viaje
+            </button>
+
+            <button type="button" class="btn btn-sm btn-outline-danger" data-delete-travel-global>
+              Eliminar viaje
+            </button>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- VISTA VIAJE -->
     <section class="d-none" data-view="viaje">
 
-      <!-- CABECERA DE VIAJE -->
       <section class="card p-4 mb-4">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
           <h2 class="mb-0">Viaje</h2>
@@ -286,7 +275,6 @@
           </div>
         </div>
 
-        <!-- NAV INTERNA DEL VIAJE -->
         <div class="travel-nav mb-4 d-flex gap-2 flex-wrap" data-travel-nav>
           <button type="button" class="btn btn-sm btn-outline-primary active" data-travel-tab="datos">
             Datos del viaje
@@ -309,7 +297,6 @@
           </button>
         </div>
 
-        <!-- DATOS DEL VIAJE -->
         <div class="travel-panel" data-travel-panel="datos">
           <div class="row g-3">
             <div class="col-md-6">
@@ -366,13 +353,11 @@
         </div>
       </section>
 
-      <!-- COTIZACIONES -->
       <section class="card p-4 mb-4 d-none" data-section="cotizaciones">
         <header class="section-header mb-3">
           <h3 class="mb-0">Cotizaciones</h3>
         </header>
 
-        <!-- SUBNAV COTIZACIONES -->
         <div class="quote-nav mb-4 d-flex gap-2 flex-wrap" data-quote-nav>
           <button type="button" class="btn btn-sm btn-outline-secondary active" data-quote-tab="presupuesto">
             Datos del Presupuesto
@@ -383,7 +368,6 @@
           </button>
         </div>
 
-        <!-- DATOS DEL PRESUPUESTO -->
         <div class="quote-panel" data-quote-section="presupuesto">
           <div class="budget-block mb-4">
             <h4 class="mb-3">Datos del Presupuesto</h4>
@@ -429,7 +413,6 @@
           </div>
         </div>
 
-        <!-- SERVICIOS -->
         <div class="quote-panel d-none" data-quote-section="servicios">
           <div class="card border-0 shadow-sm p-3 mb-4">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
@@ -468,7 +451,6 @@
             </div>
           </div>
 
-          <!-- TOTALES -->
           <div class="totals mt-4">
             <div class="total-line">
               <span>Total Hotel</span>
@@ -499,7 +481,6 @@
           </div>
         </div>
 
-        <!-- GESTIÓN DE PDFs -->
         <section class="mt-4" data-pdf-management>
           <h4 class="mb-3">Documentos PDF de la Cotización</h4>
 
@@ -514,7 +495,6 @@
           </div>
         </section>
 
-        <!-- PDF BUILDER -->
         <section class="card p-3 mt-4" data-pdf-builder>
           <h4 class="mb-3">PDF Builder</h4>
 
@@ -552,41 +532,36 @@
         </section>
       </section>
 
-    
-      <!-- OPERADORES -->
-<section class="card p-4 mb-4 d-none" data-section="operadores">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0">Operadores</h3>
-    <button type="button" class="btn btn-sm btn-outline-primary" data-operator-add>
-      + Agregar operador
-    </button>
-  </div>
+      <section class="card p-4 mb-4 d-none" data-section="operadores">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h3 class="mb-0">Operadores</h3>
+          <button type="button" class="btn btn-sm btn-outline-primary" data-operator-add>
+            + Agregar operador
+          </button>
+        </div>
 
-  <div class="text-muted small mb-3" data-operator-empty>
-    No hay operadores cargados para este viaje.
-  </div>
+        <div class="text-muted small mb-3" data-operator-empty>
+          No hay operadores cargados para este viaje.
+        </div>
 
-  <div data-operators-list></div>
-</section>
+        <div data-operators-list></div>
+      </section>
 
-      <!-- VOUCHERS -->
-      <!-- VOUCHERS -->
-<section class="card p-4 mb-4 d-none" data-section="vouchers">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0">Vouchers y Pasajes</h3>
-    <button type="button" class="btn btn-sm btn-outline-primary" data-voucher-add>
-      + Agregar voucher
-    </button>
-  </div>
+      <section class="card p-4 mb-4 d-none" data-section="vouchers">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h3 class="mb-0">Vouchers y Pasajes</h3>
+          <button type="button" class="btn btn-sm btn-outline-primary" data-voucher-add>
+            + Agregar voucher
+          </button>
+        </div>
 
-  <div class="text-muted small mb-3" data-voucher-empty>
-    No hay vouchers cargados para este viaje.
-  </div>
+        <div class="text-muted small mb-3" data-voucher-empty>
+          No hay vouchers cargados para este viaje.
+        </div>
 
-  <div data-vouchers-list></div>
-</section>
+        <div data-vouchers-list></div>
+      </section>
 
-      <!-- ITINERARIO -->
       <section class="card p-4 mb-4 d-none" data-section="itinerario">
         <h3 class="mb-3">Itinerario de Viaje</h3>
 
@@ -639,14 +614,12 @@
     </section>
   </main>
 
-  <!-- JS -->
   <script type="module" src="api.js"></script>
   <script type="module" src="app.js"></script>
   <script type="module" src="clients.js"></script>
   <script type="module" src="travel-tabs.js"></script>
   <script type="module" src="quotes.js"></script>
 
-  <!-- TEMPLATE SERVICIO -->
   <template id="service-template">
     <div class="service-card" data-service-id="">
       <div class="service-header mb-2 d-flex gap-2">
@@ -837,59 +810,59 @@
       Este bloque se genera automáticamente con los totales reales.
     </div>
   </template>
+
   <template id="voucher-template">
-  <div class="card p-3 mb-3" data-voucher-card>
-    <div class="row g-3">
-      <div class="col-md-4">
-        <label class="form-label">Tipo</label>
-        <input class="form-control" data-voucher="tipo" placeholder="Voucher hotel / Pasaje aéreo / Tren..." />
-      </div>
+    <div class="card p-3 mb-3" data-voucher-card>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Tipo</label>
+          <input class="form-control" data-voucher="tipo" placeholder="Voucher hotel / Pasaje aéreo / Tren..." />
+        </div>
 
-      <div class="col-md-4">
-        <label class="form-label">Servicio</label>
-        <input class="form-control" data-voucher="servicio" placeholder="Detalle del servicio" />
-      </div>
+        <div class="col-md-4">
+          <label class="form-label">Servicio</label>
+          <input class="form-control" data-voucher="servicio" placeholder="Detalle del servicio" />
+        </div>
 
-      <div class="col-md-4">
-        <label class="form-label">Proveedor</label>
-        <input class="form-control" data-voucher="proveedor" placeholder="Proveedor" />
-      </div>
+        <div class="col-md-4">
+          <label class="form-label">Proveedor</label>
+          <input class="form-control" data-voucher="proveedor" placeholder="Proveedor" />
+        </div>
 
-      <div class="col-md-4">
-        <label class="form-label">Fecha asociada</label>
-        <input type="date" class="form-control" data-voucher="fecha_asociada" />
-      </div>
+        <div class="col-md-4">
+          <label class="form-label">Fecha asociada</label>
+          <input type="date" class="form-control" data-voucher="fecha_asociada" />
+        </div>
 
-      <div class="col-md-4">
-        <label class="form-label">Visible cliente</label>
-        <select class="form-select" data-voucher="visible_cliente">
-          <option value="0">No</option>
-          <option value="1">Sí</option>
-        </select>
-      </div>
+        <div class="col-md-4">
+          <label class="form-label">Visible cliente</label>
+          <select class="form-select" data-voucher="visible_cliente">
+            <option value="0">No</option>
+            <option value="1">Sí</option>
+          </select>
+        </div>
 
-      <div class="col-md-4">
-        <label class="form-label">Adjuntos</label>
-        <input type="file" class="form-control" data-voucher="files" multiple />
-      </div>
+        <div class="col-md-4">
+          <label class="form-label">Adjuntos</label>
+          <input type="file" class="form-control" data-voucher="files" multiple />
+        </div>
 
-      <div class="col-12">
-        <label class="form-label">Notas</label>
-        <textarea class="form-control" rows="3" data-voucher="notes"></textarea>
-      </div>
+        <div class="col-12">
+          <label class="form-label">Notas</label>
+          <textarea class="form-control" rows="3" data-voucher="notes"></textarea>
+        </div>
 
-      <div class="col-12">
-        <div data-voucher-files-list></div>
-      </div>
+        <div class="col-12">
+          <div data-voucher-files-list></div>
+        </div>
 
-      <div class="col-12 d-flex gap-2">
-        <button type="button" class="btn btn-primary" data-voucher-save>Guardar voucher</button>
-        <button type="button" class="btn btn-outline-danger" data-voucher-delete>Eliminar</button>
+        <div class="col-12 d-flex gap-2">
+          <button type="button" class="btn btn-primary" data-voucher-save>Guardar voucher</button>
+          <button type="button" class="btn btn-outline-danger" data-voucher-delete>Eliminar</button>
+        </div>
       </div>
     </div>
-  </div>
-</template>
-
+  </template>
 </body>
 
 </html>

@@ -107,13 +107,12 @@ document.addEventListener("change", async e => {
 GLOBAL CLICK HANDLER
 *********************************/
 document.addEventListener("click", async e => {
-  /* NUEVO CLIENTE */
   if (e.target.closest("[data-client-new]")) {
     setActiveClientId(null);
     setSelectedClientName("");
     setSelectedTravelName("");
 
-    setView("cliente"); // ✅ FIX
+    setView("cliente");
     setClientTab("ficha");
 
     clearClientForm();
@@ -127,7 +126,6 @@ document.addEventListener("click", async e => {
     return;
   }
 
-  /* TABS CLIENTE */
   const clientTabBtn = e.target.closest("[data-client-tab]");
   if (clientTabBtn) {
     const tab = clientTabBtn.dataset.clientTab;
@@ -144,7 +142,6 @@ document.addEventListener("click", async e => {
     return;
   }
 
-  /* GUARDAR CLIENTE */
   if (e.target.closest("[data-client-save]")) {
     const payload = {
       nombre: val("name"),
@@ -184,7 +181,6 @@ document.addEventListener("click", async e => {
     return;
   }
 
-  /* ELIMINAR CLIENTE */
   if (e.target.closest("[data-client-delete]")) {
     if (!appState.activeClientId) return;
     if (!confirm("¿Eliminar cliente?")) return;
@@ -202,9 +198,7 @@ document.addEventListener("click", async e => {
       clearDocForm();
       clearDocumentsList();
 
-      await loadClients();
-      syncClientSelects();
-      syncClientContextUI();
+      await loadClientesAfterDelete();
 
       document.dispatchEvent(new Event("travel-cleared"));
       document.dispatchEvent(new Event("client-selected"));
@@ -215,7 +209,6 @@ document.addEventListener("click", async e => {
     return;
   }
 
-  /* GUARDAR DOCUMENTO */
   if (e.target.closest("[data-doc-save]")) {
     if (!appState.activeClientId) {
       alert("Seleccioná un cliente");
@@ -252,7 +245,6 @@ document.addEventListener("click", async e => {
     return;
   }
 
-  /* ELIMINAR DOCUMENTO */
   const deleteBtn = e.target.closest("[data-doc-delete]");
   if (deleteBtn) {
     if (!confirm("¿Eliminar documento?")) return;
@@ -267,7 +259,6 @@ document.addEventListener("click", async e => {
     return;
   }
 
-  /* CANCELAR FICHA */
   if (e.target.closest("[data-client-doc-cancel]")) {
     if (!appState.activeClientId) {
       clearClientForm();
@@ -317,13 +308,27 @@ async function loadClientDocuments(clientId) {
     const div = document.createElement("div");
     div.className = "border rounded p-2 mb-2";
 
+    const fileLink = buildDocumentLink(d);
+    const fileHtml = fileLink
+      ? `
+        <div class="small mt-2">
+          <a href="${escapeAttr(fileLink.href)}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+            ${escapeHtml(fileLink.label)}
+          </a>
+        </div>
+      `
+      : `
+        <div class="small mt-2 text-muted">Sin archivo adjunto</div>
+      `;
+
     div.innerHTML = `
       <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
         <div>
           <strong>${escapeHtml(d.type || "Documento")}</strong>
           <div class="small text-muted">${escapeHtml(d.number || "Sin número")}</div>
-          ${d.expiry ? `<div class="small text-muted">Vence: ${escapeHtml(d.expiry)}</div>` : ""}
+          ${d.expiry ? `<div class="small text-muted">Vence: ${escapeHtml(formatDate(d.expiry))}</div>` : ""}
           ${d.notes ? `<div class="small mt-1">${escapeHtml(d.notes)}</div>` : ""}
+          ${fileHtml}
         </div>
 
         <button class="btn btn-sm btn-outline-danger" data-doc-delete="${d.id}">
@@ -451,9 +456,51 @@ function set(key, value) {
   });
 }
 
+async function loadClientesAfterDelete() {
+  await loadClients();
+  syncClientSelects();
+  syncClientContextUI();
+}
+
 /********************************
 UTILS
 *********************************/
+function buildDocumentLink(doc = {}) {
+  const rawPath = doc.file_path || doc.path || doc.url || "";
+  const rawName = doc.file_name || doc.original_name || doc.filename || "Ver archivo";
+
+  if (!rawPath) return null;
+
+  if (/^https?:\/\//i.test(rawPath)) {
+    return {
+      href: rawPath,
+      label: rawName
+    };
+  }
+
+  const normalizedPath = String(rawPath).replace(/\\/g, "/").replace(/^\/+/, "");
+
+  const apiBase =
+    window.API_BASE ||
+    localStorage.getItem("api_base") ||
+    "http://localhost:3000/api";
+
+  const backendOrigin = apiBase.replace(/\/api\/?$/, "");
+
+  return {
+    href: `${backendOrigin}/${normalizedPath}`,
+    label: rawName
+  };
+}
+
+function formatDate(value) {
+  if (!value) return "";
+  const raw = String(value);
+  if (raw.includes("T")) return raw.split("T")[0];
+  if (raw.includes(" ")) return raw.split(" ")[0];
+  return raw;
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -461,4 +508,12 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function escapeAttr(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }

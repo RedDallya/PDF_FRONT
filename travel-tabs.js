@@ -56,7 +56,7 @@ export async function loadTravels() {
   if (!travels.length) {
     setActiveTravelId(null);
     setSelectedTravelName("");
-    renderEmptyTravelTab();
+    renderEmptyTravelState();
     populateTravelSwitcher([]);
     syncTravelContextUI();
     document.dispatchEvent(new Event("travel-cleared"));
@@ -129,33 +129,13 @@ function renderTravelTab(travel) {
   }
 
   div.innerHTML = `
-    <div class="d-flex align-items-center gap-2 flex-wrap">
-      <button
-        type="button"
-        class="btn btn-sm ${Number(travel.id) === Number(appState.activeTravelId) ? "btn-primary" : "btn-outline-primary"}"
-        data-open-travel
-      >
-        ${travel.destino || `Viaje ${travel.id}`}
-      </button>
-
-      <button
-        type="button"
-        class="btn btn-sm btn-outline-secondary"
-        data-duplicate-travel
-        title="Duplicar viaje"
-      >
-        ⧉
-      </button>
-
-      <button
-        type="button"
-        class="btn btn-sm btn-outline-danger"
-        data-delete-travel
-        title="Eliminar viaje"
-      >
-        ✕
-      </button>
-    </div>
+    <button
+      type="button"
+      class="btn btn-sm ${Number(travel.id) === Number(appState.activeTravelId) ? "btn-primary" : "btn-outline-primary"}"
+      data-open-travel
+    >
+      ${travel.destino || `Viaje ${travel.id}`}
+    </button>
   `;
 
   container.appendChild(div);
@@ -164,26 +144,13 @@ function renderTravelTab(travel) {
 /************************************************
 EMPTY STATE
 *************************************************/
-function renderEmptyTravelTab() {
+function renderEmptyTravelState() {
   const container = document.querySelector("[data-travel-tabs]");
   if (!container) return;
 
   const div = document.createElement("div");
-  div.className = "travel-tab";
-
-  div.innerHTML = `
-    <div class="d-flex align-items-center gap-2 flex-wrap">
-      <span class="small text-muted">Este cliente todavía no tiene viajes asociados.</span>
-
-      <button
-        type="button"
-        class="btn btn-sm btn-outline-success"
-        data-add-travel
-      >
-        Agregar viaje
-      </button>
-    </div>
-  `;
+  div.className = "small text-muted";
+  div.textContent = "Este cliente todavía no tiene viajes asociados.";
 
   container.appendChild(div);
 }
@@ -226,8 +193,8 @@ function syncTravelContextUI() {
   }
 
   const switcher = document.querySelector("[data-travel-switcher]");
-  if (switcher && appState.activeTravelId) {
-    switcher.value = String(appState.activeTravelId);
+  if (switcher) {
+    switcher.value = appState.activeTravelId ? String(appState.activeTravelId) : "";
   }
 
   markActiveTravelTab();
@@ -268,13 +235,11 @@ document.addEventListener("click", async e => {
   const travelTab = e.target.closest(".travel-tab");
   const travelId = Number(travelTab?.dataset.travelId);
 
-  /* ABRIR VIAJE DESDE TAB */
   if (e.target.closest("[data-open-travel]") && travelTab) {
     await openTravelById(travelId);
     return;
   }
 
-  /* CLICK EN TAB ENTERA */
   if (
     travelTab &&
     !e.target.closest("button") &&
@@ -286,7 +251,6 @@ document.addEventListener("click", async e => {
     return;
   }
 
-  /* NUEVO VIAJE */
   if (e.target.closest("[data-add-travel]")) {
     try {
       const newTravel = await createTravel({
@@ -306,49 +270,6 @@ document.addEventListener("click", async e => {
     return;
   }
 
-  /* ELIMINAR VIAJE DESDE TAB */
-  if (e.target.closest("[data-delete-travel]") && travelTab) {
-    if (!confirm("¿Eliminar viaje?")) return;
-
-    try {
-      await deleteTravel(travelId);
-
-      if (Number(appState.activeTravelId) === Number(travelId)) {
-        setActiveTravelId(null);
-        setSelectedTravelName("");
-      }
-
-      await loadTravels();
-    } catch (err) {
-      console.error("Error eliminando viaje:", err);
-    }
-
-    return;
-  }
-
-  /* DUPLICAR VIAJE DESDE TAB */
-  if (e.target.closest("[data-duplicate-travel]") && travelTab) {
-    try {
-      const current = await getTravelById(travelId);
-
-      const newTravel = await createTravel({
-        cliente_id: appState.activeClientId,
-        destino: `${current?.destino || "Viaje"} copia`
-      });
-
-      setActiveTravelId(newTravel.id);
-      setSelectedTravelName(newTravel.destino || `${current?.destino || "Viaje"} copia`);
-
-      await loadTravels();
-      await openTravelById(newTravel.id);
-    } catch (err) {
-      console.error("Error duplicando viaje:", err);
-    }
-
-    return;
-  }
-
-  /* ELIMINAR VIAJE GLOBAL */
   if (e.target.closest("[data-delete-travel-global]")) {
     if (!appState.activeTravelId) return;
     if (!confirm("¿Eliminar viaje?")) return;
@@ -366,7 +287,6 @@ document.addEventListener("click", async e => {
     return;
   }
 
-  /* DUPLICAR VIAJE GLOBAL */
   if (e.target.closest("[data-duplicate-travel-global]")) {
     if (!appState.activeTravelId) return;
 
@@ -386,5 +306,7 @@ document.addEventListener("click", async e => {
     } catch (err) {
       console.error("Error duplicando viaje global:", err);
     }
+
+    return;
   }
 });
