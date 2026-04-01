@@ -152,9 +152,9 @@ export async function loadQuotes() {
       return;
     }
 
-    const existsActive = quotes.some(q => Number(q.id) === Number(appState.activeQuoteId));
+    const existsActive = quotes.some(qt => Number(qt.id) === Number(appState.activeQuoteId));
     if (!existsActive) {
-      setActiveQuoteId(quotes[0].id);
+      setActiveQuoteId(null); // 👈 clave
     }
 
     quotes.forEach(qt => {
@@ -180,6 +180,10 @@ export async function loadQuotes() {
 
               <div class="small text-muted">
                 Fecha: ${escapeHtml(formatDateForInput(qt.fecha_creacion) || "-")}
+              </div>
+
+              <div class="small text-muted">
+                Estado: ${escapeHtml(qt.estado || "-")}
               </div>
 
               <div class="small text-muted">
@@ -211,11 +215,13 @@ export async function loadQuotes() {
     });
 
     if (appState.activeQuoteId) {
-      const activeQuote = quotes.find(q => Number(q.id) === Number(appState.activeQuoteId));
+      const activeQuote = quotes.find(qt => Number(qt.id) === Number(appState.activeQuoteId));
       if (activeQuote) {
         fillQuoteForm(activeQuote);
       }
     }
+
+    updateQuoteSelectionUI();
   } catch (err) {
     console.error("Error cargando cotizaciones:", err);
   }
@@ -225,14 +231,16 @@ export async function loadQuotes() {
    CARGAR UNA COTIZACIÓN
 ========================= */
 async function loadQuoteById(id) {
-  if (!id) return;
+  if (!id) return null;
 
   try {
     const res = await apiFetch(`/cotizaciones/${id}`);
     const cotizacion = await safeJson(res);
     fillQuoteForm(cotizacion);
+    return cotizacion;
   } catch (err) {
     console.error("Error cargando cotización:", err);
+    return null;
   }
 }
 
@@ -256,7 +264,7 @@ function fillQuoteForm(cotizacion = {}) {
 async function selectQuote(id, { openServicios = false } = {}) {
   if (!id) return;
 
-  setActiveQuoteId(id);
+  setActiveQuoteId(Number(id));
   await loadQuoteById(id);
   updateQuoteSelectionUI();
 
@@ -313,7 +321,8 @@ document.addEventListener("click", async e => {
         method: "PUT",
         body: JSON.stringify(payload)
       });
-      setActiveQuoteId(id);
+
+      setActiveQuoteId(Number(id));
     } else {
       const res = await apiFetch("/cotizaciones", {
         method: "POST",
@@ -321,13 +330,13 @@ document.addEventListener("click", async e => {
       });
 
       const created = await safeJson(res);
-      setActiveQuoteId(created?.id || null);
+      setActiveQuoteId(created?.id ? Number(created.id) : null);
     }
 
     await loadQuotes();
 
     if (appState.activeQuoteId) {
-      await selectQuote(appState.activeQuoteId);
+      await selectQuote(appState.activeQuoteId, { openServicios: false });
     }
 
     alert("Cotización guardada");
@@ -361,7 +370,13 @@ document.addEventListener("click", async e => {
     await loadQuotes();
 
     if (appState.activeQuoteId) {
-      await selectQuote(appState.activeQuoteId);
+      await selectQuote(appState.activeQuoteId, { openServicios: false });
+    } else {
+      try {
+        await loadServicios();
+      } catch (err) {
+        console.error("Error limpiando servicios tras eliminar cotización:", err);
+      }
     }
   } catch (err) {
     console.error("Error eliminando cotización:", err);
@@ -393,7 +408,15 @@ document.addEventListener("click", async e => {
     return;
   }
 });
+/* =========================
+   NUEVA COTIZACIÓN
+========================= */
+document.addEventListener("click", e => {
+  if (!e.target.closest("[data-quote-new]")) return;
 
+  setActiveQuoteId(null);
+  clearQuoteForm();
+});
 /* =========================
    BOTÓN VER VIAJE / REFRESH
 ========================= */
@@ -406,7 +429,7 @@ document.getElementById("btn-ver-viaje")?.addEventListener("click", async () => 
   await loadQuotes();
 
   if (appState.activeQuoteId) {
-    await selectQuote(appState.activeQuoteId);
+    await selectQuote(appState.activeQuoteId, { openServicios: false });
   }
 });
 
@@ -419,12 +442,24 @@ document.addEventListener("travel-selected", async () => {
   await loadQuotes();
 
   if (appState.activeQuoteId) {
-    await selectQuote(appState.activeQuoteId);
+    await selectQuote(appState.activeQuoteId, { openServicios: false });
+  } else {
+    try {
+      await loadServicios();
+    } catch (err) {
+      console.error("Error limpiando servicios al seleccionar viaje:", err);
+    }
   }
 });
 
-document.addEventListener("travel-cleared", () => {
+document.addEventListener("travel-cleared", async () => {
   resetQuoteContext();
+
+  try {
+    await loadServicios();
+  } catch (err) {
+    console.error("Error limpiando servicios al limpiar viaje:", err);
+  }
 });
 
 document.addEventListener("travel-saved", async () => {
@@ -432,9 +467,15 @@ document.addEventListener("travel-saved", async () => {
   await loadQuotes();
 });
 
-document.addEventListener("client-selected", () => {
+document.addEventListener("client-selected", async () => {
   if (!appState.activeTravelId) {
     resetQuoteContext();
+
+    try {
+      await loadServicios();
+    } catch (err) {
+      console.error("Error limpiando servicios al cambiar cliente:", err);
+    }
   }
 });
 
@@ -450,6 +491,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadQuotes();
 
   if (appState.activeQuoteId) {
-    await selectQuote(appState.activeQuoteId);
+    await selectQuote(appState.activeQuoteId, { openServicios: false });
   }
 });

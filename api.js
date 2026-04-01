@@ -20,9 +20,6 @@ export function getAuthToken() {
   return authToken;
 }
 
-
-
-
 /* =====================================
 UI STATE
 ===================================== */
@@ -86,20 +83,16 @@ export async function apiFetch(endpoint, options = {}) {
   return res;
 }
 
-
-
-
 export const fetchJSON = async (e, o) => {
   const res = await apiFetch(e, o);
   const contentType = res.headers.get("content-type");
-  
-  // Verificar que sea JSON antes de parsear
+
   if (!contentType?.includes("application/json")) {
     const text = await res.text();
     console.error("Expected JSON but got:", contentType, text.substring(0, 200));
     throw new Error(`Server returned ${contentType} instead of JSON`);
   }
-  
+
   return res.json();
 };
 
@@ -114,6 +107,11 @@ export async function login(username, password) {
 
   setAuthToken(res.accessToken);
   setRefreshToken(res.refreshToken);
+
+  if (res.user?.id) {
+    localStorage.setItem("user_id", String(res.user.id));
+  }
+
   showApp();
   return res;
 }
@@ -123,6 +121,7 @@ export function logout() {
   refreshTokenValue = null;
   localStorage.removeItem("auth_token");
   localStorage.removeItem("refresh_token");
+  localStorage.removeItem("user_id");
   showLogin();
 }
 
@@ -163,3 +162,41 @@ export const deleteServicio = id => fetchJSON(`/servicios/${id}`, { method: "DEL
 
 export const getPdfs = id => fetchJSON(`/pdfs/${id}`);
 export const getPdfSections = id => fetchJSON(`/pdf-sections/${id}`);
+
+/* =====================
+PDF BRAND PROFILES
+===================== */
+
+export const getCompanyProfiles = () => fetchJSON("/company-profile");
+
+export const getCompanyProfileById = id =>
+  fetchJSON(`/company-profile/${id}`);
+
+export const createCompanyProfile = data =>
+  fetchJSON("/company-profile", {
+    method: "POST",
+    body: JSON.stringify(data)
+  });
+
+export const updateCompanyProfile = (id, data) =>
+  fetchJSON(`/company-profile/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data)
+  });
+
+export const deleteCompanyProfile = id =>
+  fetchJSON(`/company-profile/${id}`, {
+    method: "DELETE"
+  });
+
+export const uploadCompanyLogo = (id, file) => {
+  const form = new FormData();
+  form.append("logo", file);
+  return fetchForm(`/company-profile/${id}/logo`, form);
+};
+
+export const uploadCompanyCover = (id, file) => {
+  const form = new FormData();
+  form.append("cover", file);
+  return fetchForm(`/company-profile/${id}/cover`, form);
+};

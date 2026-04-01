@@ -47,6 +47,11 @@ document.addEventListener("click", async (e) => {
     const card = saveBtn.closest("[data-operator-card]");
     if (!card) return;
 
+    if (!canEditOperatorCard(card)) {
+      alert("No tenés permiso para editar este operador");
+      return;
+    }
+
     await saveOperatorCard(card);
     return;
   }
@@ -57,6 +62,11 @@ document.addEventListener("click", async (e) => {
 
     const card = deleteBtn.closest("[data-operator-card]");
     if (!card) return;
+
+    if (!canEditOperatorCard(card)) {
+      alert("No tenés permiso para eliminar este operador");
+      return;
+    }
 
     await deleteOperatorCard(card);
   }
@@ -212,6 +222,10 @@ function hydrateOperatorCard(card, data = {}) {
   setOperatorField(card, "estado", data.estado || "");
   setOperatorField(card, "condiciones_comerciales", data.condiciones_comerciales || "");
   setOperatorField(card, "notes", data.notes || "");
+
+  card.dataset.createdBy = data.created_by || "";
+
+  applyOperatorPermissions(card, data);
 }
 
 /* =========================================
@@ -250,6 +264,41 @@ function getOperatorCardId(card) {
 
 function setOperatorCardId(card, value) {
   card.setAttribute("data-operator-id", value || "");
+}
+
+/* =========================================
+PERMISOS
+========================================= */
+function isOwner(createdBy) {
+  const currentUserId = Number(localStorage.getItem("user_id"));
+  return Number(createdBy) === currentUserId;
+}
+
+function canEditOperatorCard(card) {
+  const recordId = getOperatorCardId(card);
+
+  if (!recordId) return true;
+
+  const createdBy = card.dataset.createdBy || "";
+  return isOwner(createdBy);
+}
+
+function applyOperatorPermissions(card, data = {}) {
+  const recordId = getOperatorCardId(card);
+
+  if (!recordId) return;
+  if (!data.created_by) return;
+  if (isOwner(data.created_by)) return;
+
+  const saveBtn = card.querySelector("[data-operator-save]");
+  const deleteBtn = card.querySelector("[data-operator-delete]");
+
+  if (saveBtn) saveBtn.style.display = "none";
+  if (deleteBtn) deleteBtn.style.display = "none";
+
+  card.querySelectorAll("input, textarea, select").forEach(el => {
+    el.disabled = true;
+  });
 }
 
 /* =========================================

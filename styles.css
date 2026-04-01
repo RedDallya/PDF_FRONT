@@ -624,3 +624,13 @@ textarea[readonly] {
     font-size: 1rem;
   }
 }
+
+.config-logo-preview-box {
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  border: 1px dashed var(--border-dashed);
+  border-radius: 10px;
+  padding: 10px;
+  background: #fff;
+}

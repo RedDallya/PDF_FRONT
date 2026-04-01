@@ -75,7 +75,7 @@ async function reloadServicesContext() {
     }
 
     services.forEach(service => {
-      renderServiceCard(service);
+      renderServiceCard(service, { mode: "preview" });
     });
 
     syncServiceFilterUI();
@@ -117,7 +117,11 @@ function syncVisibleServicesByType() {
   const cards = document.querySelectorAll(".service-card");
 
   cards.forEach(card => {
-    const tipo = card.querySelector('[data-field="tipo"]')?.value || "";
+    const tipo =
+      card.dataset.serviceTipo ||
+      card.querySelector('[data-field="tipo"]')?.value ||
+      "";
+
     const shouldShow = !appState.serviceType || tipo === appState.serviceType;
     card.classList.toggle("d-none", !shouldShow);
   });
@@ -140,34 +144,21 @@ document.addEventListener("click", e => {
     return;
   }
 
-  const list = document.querySelector(".services-list");
-  const tpl = document.getElementById("service-template");
-
-  if (!tpl || !list) return;
-
-  removeEmptyServicesState();
-
   const defaultType = appState.serviceType || btn.dataset.addService || "hotel";
-
-  const node = tpl.content.cloneNode(true);
-  const serviceEl = node.querySelector(".service-card");
-
-  if (!serviceEl) return;
-
-  serviceEl.dataset.serviceId = crypto.randomUUID();
-
-  wireServiceCard(serviceEl);
-
-  const tipoSelect = serviceEl.querySelector('[data-field="tipo"]');
-  if (tipoSelect) {
-    tipoSelect.value = defaultType;
-  }
-
-  setDefaultSpecificFields(serviceEl, defaultType);
-  toggleSpecificFields(serviceEl, defaultType);
-  updateServiceSubtotal(serviceEl);
-
-  list.appendChild(serviceEl);
+  renderServiceCard(
+    {
+      tipo: defaultType,
+      categoria: defaultType,
+      moneda: "USD",
+      precio_adulto: 0,
+      precio_menor: 0,
+      adultos: 1,
+      menores: 0,
+      subtotal: 0,
+      metadata: {}
+    },
+    { mode: "edit", isNew: true }
+  );
 
   syncVisibleServicesByType();
   updateTotals();
@@ -218,9 +209,62 @@ document.addEventListener("click", async e => {
 });
 
 /* =========================================
-   RENDER DE CARD EXISTENTE
+   CLICK GLOBAL DE CARDS
 ========================================= */
-function renderServiceCard(service = {}) {
+document.addEventListener("click", e => {
+  const editBtn = e.target.closest("[data-service-edit]");
+  if (editBtn) {
+    const card = editBtn.closest(".service-card");
+    if (!card) return;
+
+    switchServiceCardToEdit(card);
+    syncVisibleServicesByType();
+    return;
+  }
+
+  const cancelBtn = e.target.closest("[data-service-cancel]");
+  if (cancelBtn) {
+    const card = cancelBtn.closest(".service-card");
+    if (!card) return;
+
+    const snapshot = parseServiceSnapshot(card.dataset.serviceSnapshot);
+
+    if (!snapshot && card.dataset.isNew === "1") {
+      card.remove();
+      if (!document.querySelector(".service-card")) {
+        renderEmptyServicesState("No hay servicios cargados para esta cotización.");
+      }
+      updateTotals();
+      return;
+    }
+
+    switchServiceCardToPreview(card, snapshot || buildServicePayload(card));
+    syncVisibleServicesByType();
+    updateTotals();
+    return;
+  }
+
+  const removeBtn = e.target.closest("[data-remove]");
+  if (removeBtn) {
+    const card = removeBtn.closest(".service-card");
+    if (!card) return;
+
+    card.remove();
+
+    if (!document.querySelector(".service-card")) {
+      renderEmptyServicesState("No hay servicios cargados para esta cotización.");
+    }
+
+    updateTotals();
+  }
+});
+
+/* =========================================
+   RENDER CARD
+========================================= */
+function renderServiceCard(service = {}, options = {}) {
+  const { mode = "preview", isNew = false } = options;
+
   const list = document.querySelector(".services-list");
   const tpl = document.getElementById("service-template");
 
@@ -230,10 +274,10 @@ function renderServiceCard(service = {}) {
 
   const node = tpl.content.cloneNode(true);
   const serviceEl = node.querySelector(".service-card");
-
   if (!serviceEl) return;
 
   serviceEl.dataset.serviceId = service.id || crypto.randomUUID();
+  serviceEl.dataset.isNew = isNew ? "1" : "0";
 
   if (service.id) {
     serviceEl.dataset.backendId = service.id;
@@ -242,6 +286,16 @@ function renderServiceCard(service = {}) {
   wireServiceCard(serviceEl);
   hydrateServiceCard(serviceEl, service);
 
+  const normalized = normalizeServiceData(service);
+  serviceEl.dataset.serviceSnapshot = JSON.stringify(normalized);
+  serviceEl.dataset.serviceTipo = normalized.tipo || normalized.categoria || "";
+
+  if (mode === "preview" && !isNew) {
+    switchServiceCardToPreview(serviceEl, normalized);
+  } else {
+    switchServiceCardToEdit(serviceEl);
+  }
+
   list.appendChild(serviceEl);
 }
 
@@ -249,24 +303,12 @@ function renderServiceCard(service = {}) {
    WIRING CARD
 ========================================= */
 function wireServiceCard(serviceEl) {
-  const removeBtn = serviceEl.querySelector("[data-remove]");
-  removeBtn?.addEventListener("click", () => {
-    serviceEl.remove();
-
-    const remaining = document.querySelectorAll(".service-card").length;
-
-    if (!remaining) {
-      renderEmptyServicesState("No hay servicios cargados para esta cotización.");
-    }
-
-    updateTotals();
-  });
-
   serviceEl
-    .querySelectorAll('[data-field="precio"], [data-field="adultos"], [data-field="menores"]')
+    .querySelectorAll('[data-field="precio_adulto"], [data-field="precio_menor"], [data-field="adultos"], [data-field="menores"]')
     .forEach(input => {
       input.addEventListener("input", () => {
         updateServiceSubtotal(serviceEl);
+        syncLivePreviewIfAny(serviceEl);
         updateTotals();
       });
     });
@@ -278,10 +320,28 @@ function wireServiceCard(serviceEl) {
     clearSpecificFields(serviceEl);
     setDefaultSpecificFields(serviceEl, type);
     toggleSpecificFields(serviceEl, type);
+    serviceEl.dataset.serviceTipo = type;
+
     syncVisibleServicesByType();
+    syncLivePreviewIfAny(serviceEl);
     updateServiceSubtotal(serviceEl);
     updateTotals();
   });
+
+  serviceEl
+    .querySelectorAll('[data-field="descripcion"], [data-field="observaciones"], [data-field="moneda"]')
+    .forEach(input => {
+      input.addEventListener("input", () => {
+        syncLivePreviewIfAny(serviceEl);
+      });
+    });
+
+  serviceEl.querySelectorAll(".service-specific input, .service-specific select, .service-specific textarea")
+    .forEach(input => {
+      input.addEventListener("input", () => {
+        syncLivePreviewIfAny(serviceEl);
+      });
+    });
 }
 
 /* =========================================
@@ -291,18 +351,200 @@ function hydrateServiceCard(serviceEl, service) {
   const tipo = service.tipo || service.categoria || "hotel";
   const metadata = normalizeMetadata(service.metadata);
 
+  const normalized = normalizeServiceData(service);
+
   setField(serviceEl, "tipo", tipo);
   setField(serviceEl, "descripcion", service.descripcion || "");
   setField(serviceEl, "observaciones", service.observaciones || "");
   setField(serviceEl, "moneda", service.moneda || "USD");
-  setField(serviceEl, "precio", service.precio || 0);
-  setField(serviceEl, "adultos", service.adultos || 0);
-  setField(serviceEl, "menores", service.menores || 0);
-  setField(serviceEl, "subtotal", service.subtotal || 0);
+  setField(serviceEl, "precio_adulto", normalized.precio_adulto || 0);
+  setField(serviceEl, "precio_menor", normalized.precio_menor || 0);
+  setField(serviceEl, "adultos", normalized.adultos || 0);
+  setField(serviceEl, "menores", normalized.menores || 0);
+  setField(serviceEl, "subtotal", normalized.subtotal || 0);
 
   toggleSpecificFields(serviceEl, tipo);
   hydrateSpecificFields(serviceEl, tipo, metadata);
   updateServiceSubtotal(serviceEl);
+}
+
+/* =========================================
+   MODOS: PREVIEW / EDIT
+========================================= */
+function switchServiceCardToPreview(serviceEl, serviceData = {}) {
+  const normalized = normalizeServiceData(serviceData);
+  serviceEl.dataset.serviceSnapshot = JSON.stringify(normalized);
+  serviceEl.dataset.serviceTipo = normalized.tipo || normalized.categoria || "";
+
+  hideEditorElements(serviceEl);
+
+  let preview = serviceEl.querySelector(".service-preview");
+  if (!preview) {
+    preview = document.createElement("div");
+    preview.className = "service-preview border rounded p-3 mt-2";
+    serviceEl.appendChild(preview);
+  }
+
+  preview.innerHTML = buildServicePreviewHtml(normalized);
+  preview.classList.remove("d-none");
+}
+
+function switchServiceCardToEdit(serviceEl) {
+  showEditorElements(serviceEl);
+
+  let preview = serviceEl.querySelector(".service-preview");
+  if (!preview) {
+    preview = document.createElement("div");
+    preview.className = "service-preview border rounded p-3 mt-2 d-none";
+    serviceEl.appendChild(preview);
+  } else {
+    preview.classList.add("d-none");
+  }
+
+  ensureEditorActionButtons(serviceEl);
+}
+
+function hideEditorElements(serviceEl) {
+  serviceEl.querySelectorAll(
+    '.service-header, [data-field="descripcion"], [data-field="observaciones"], [data-field="adjuntos"], .row.g-2.mb-2, .service-specific'
+  ).forEach(el => el.classList.add("d-none"));
+
+  const removeBtn = serviceEl.querySelector("[data-remove]");
+  if (removeBtn) removeBtn.classList.add("d-none");
+
+  const actionWrap = ensureEditorActionButtons(serviceEl);
+  actionWrap.classList.remove("d-none");
+
+  const editBtn = actionWrap.querySelector("[data-service-edit]");
+  const cancelBtn = actionWrap.querySelector("[data-service-cancel]");
+
+  if (editBtn) editBtn.classList.remove("d-none");
+  if (cancelBtn) cancelBtn.classList.add("d-none");
+}
+
+function showEditorElements(serviceEl) {
+  serviceEl.querySelectorAll(
+    '.service-header, [data-field="descripcion"], [data-field="observaciones"], [data-field="adjuntos"], .row.g-2.mb-2'
+  ).forEach(el => el.classList.remove("d-none"));
+
+  const tipo = getField(serviceEl, "tipo");
+  toggleSpecificFields(serviceEl, tipo);
+
+  const removeBtn = serviceEl.querySelector("[data-remove]");
+  if (removeBtn) removeBtn.classList.remove("d-none");
+
+  const actionWrap = ensureEditorActionButtons(serviceEl);
+  actionWrap.classList.remove("d-none");
+
+  const editBtn = actionWrap.querySelector("[data-service-edit]");
+  const cancelBtn = actionWrap.querySelector("[data-service-cancel]");
+
+  if (editBtn) editBtn.classList.add("d-none");
+  if (cancelBtn) cancelBtn.classList.remove("d-none");
+}
+
+function ensureEditorActionButtons(serviceEl) {
+  let wrap = serviceEl.querySelector(".service-mode-actions");
+  if (wrap) return wrap;
+
+  wrap = document.createElement("div");
+  wrap.className = "service-mode-actions d-flex gap-2 mt-2";
+  wrap.innerHTML = `
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-service-edit>Editar</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary d-none" data-service-cancel>Cancelar</button>
+  `;
+
+  serviceEl.appendChild(wrap);
+  return wrap;
+}
+
+function syncLivePreviewIfAny(serviceEl) {
+  const preview = serviceEl.querySelector(".service-preview");
+  if (!preview || preview.classList.contains("d-none")) return;
+
+  const payload = buildServicePayload(serviceEl);
+  if (!payload) return;
+
+  preview.innerHTML = buildServicePreviewHtml(payload);
+}
+
+/* =========================================
+   PREVIEW HTML
+========================================= */
+function buildServicePreviewHtml(service = {}) {
+  const tipo = service.tipo || service.categoria || "-";
+  const descripcion = service.descripcion || "-";
+  const observaciones = service.observaciones || "";
+  const moneda = service.moneda || "USD";
+  const precioAdulto = Number(service.precio_adulto || 0).toFixed(2);
+  const precioMenor = Number(service.precio_menor || 0).toFixed(2);
+  const adultos = Number(service.adultos || 0);
+  const menores = Number(service.menores || 0);
+  const subtotal = Number(service.subtotal || 0).toFixed(2);
+  const metadata = normalizeMetadata(service.metadata);
+
+  const metadataHtml = buildMetadataPreview(tipo, metadata);
+
+  return `
+    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+      <div class="flex-grow-1">
+        <div class="fw-semibold mb-1">${escapeHtml(capitalize(tipo))}</div>
+        <div class="small mb-1"><strong>Descripción:</strong> ${escapeHtml(descripcion)}</div>
+        ${observaciones ? `<div class="small mb-1"><strong>Observaciones:</strong> ${escapeHtml(observaciones)}</div>` : ""}
+        <div class="small mb-1">
+          <strong>Precio adulto:</strong> ${escapeHtml(moneda)} ${escapeHtml(precioAdulto)}
+        </div>
+        <div class="small mb-1">
+          <strong>Precio menor:</strong> ${escapeHtml(moneda)} ${escapeHtml(precioMenor)}
+        </div>
+        <div class="small mb-1">
+          <strong>Pasajeros:</strong> Adultos ${adultos} / Menores ${menores}
+        </div>
+        <div class="small mb-1">
+          <strong>Subtotal:</strong> ${escapeHtml(moneda)} ${escapeHtml(subtotal)}
+        </div>
+        ${metadataHtml}
+      </div>
+    </div>
+  `;
+}
+
+function buildMetadataPreview(tipo, metadata = {}) {
+  const lines = [];
+
+  if (tipo === "hotel") {
+    if (metadata.field_0) lines.push(`Check-in: ${metadata.field_0}`);
+    if (metadata.field_1) lines.push(`Check-out: ${metadata.field_1}`);
+  }
+
+  if (tipo === "aereo") {
+    if (metadata.field_0) lines.push(`Aerolínea: ${metadata.field_0}`);
+    if (metadata.field_1) lines.push(`Vuelo: ${metadata.field_1}`);
+    if (metadata.field_2) lines.push(`Fecha/hora: ${metadata.field_2}`);
+    if (metadata.field_3) lines.push(`Origen/Destino: ${metadata.field_3}`);
+  }
+
+  if (tipo === "tren") {
+    if (metadata.field_0) lines.push(`Fecha/hora: ${metadata.field_0}`);
+    if (metadata.field_1) lines.push(`Lugar salida/llegada: ${metadata.field_1}`);
+  }
+
+  if (tipo === "auto") {
+    if (metadata.field_0) lines.push(`Proveedor: ${metadata.field_0}`);
+    if (metadata.field_1) lines.push(`Vehículo: ${metadata.field_1}`);
+    if (metadata.field_2) lines.push(`Coberturas: ${metadata.field_2}`);
+  }
+
+  if (!lines.length) return "";
+
+  return `
+    <div class="small mt-2">
+      <strong>Detalle específico:</strong>
+      <ul class="mb-0 mt-1">
+        ${lines.map(line => `<li>${escapeHtml(line)}</li>`).join("")}
+      </ul>
+    </div>
+  `;
 }
 
 /* =========================================
@@ -383,30 +625,47 @@ function buildServicePayload(card) {
 
   if (!tipo) return null;
 
-  return {
+  const precioAdulto = Number(getField(card, "precio_adulto") || 0);
+  const precioMenor = Number(getField(card, "precio_menor") || 0);
+  const adultos = Number(getField(card, "adultos") || 0);
+  const menores = Number(getField(card, "menores") || 0);
+  const subtotal = Number(getField(card, "subtotal") || 0);
+
+  const payload = {
     cotizacion_id: Number(appState.activeQuoteId),
     tipo,
     categoria: tipo,
     descripcion: getField(card, "descripcion"),
     observaciones: getField(card, "observaciones"),
     moneda: getField(card, "moneda") || "USD",
-    precio: Number(getField(card, "precio") || 0),
-    adultos: Number(getField(card, "adultos") || 0),
-    menores: Number(getField(card, "menores") || 0),
-    subtotal: Number(getField(card, "subtotal") || 0),
-    metadata: collectSpecificMetadata(card, tipo)
+    precio: precioAdulto,
+    adultos,
+    menores,
+    subtotal,
+    metadata: {
+      ...collectSpecificMetadata(card, tipo),
+      precio_adulto: precioAdulto,
+      precio_menor: precioMenor
+    }
   };
+
+  if (card.dataset.backendId) {
+    payload.id = Number(card.dataset.backendId);
+  }
+
+  return payload;
 }
 
 /* =========================================
    SUBTOTAL
 ========================================= */
 function updateServiceSubtotal(serviceEl) {
-  const precio = Number(getField(serviceEl, "precio") || 0);
+  const precioAdulto = Number(getField(serviceEl, "precio_adulto") || 0);
+  const precioMenor = Number(getField(serviceEl, "precio_menor") || 0);
   const adultos = Number(getField(serviceEl, "adultos") || 0);
   const menores = Number(getField(serviceEl, "menores") || 0);
 
-  const subtotal = precio * (adultos + menores);
+  const subtotal = (precioAdulto * adultos) + (precioMenor * menores);
   setField(serviceEl, "subtotal", subtotal.toFixed(2));
 }
 
@@ -427,7 +686,10 @@ function updateTotals() {
   };
 
   document.querySelectorAll(".service-card").forEach(card => {
-    const tipo = getField(card, "tipo");
+    const tipo =
+      card.dataset.serviceTipo ||
+      getField(card, "tipo");
+
     const subtotal = Number(getField(card, "subtotal") || 0);
 
     if (!tipo) return;
@@ -536,6 +798,60 @@ function normalizeMetadata(metadata) {
   }
 
   return {};
+}
+
+function normalizeServiceData(service = {}) {
+  const metadata = normalizeMetadata(service.metadata);
+
+  const precioAdulto =
+    metadata.precio_adulto ??
+    service.precio_adulto ??
+    service.precio ??
+    0;
+
+  const precioMenor =
+    metadata.precio_menor ??
+    service.precio_menor ??
+    0;
+
+  const adultos = Number(service.adultos || 0);
+  const menores = Number(service.menores || 0);
+
+  const subtotalRaw =
+    service.subtotal ??
+    (Number(precioAdulto || 0) * adultos) + (Number(precioMenor || 0) * menores);
+
+  return {
+    id: service.id || null,
+    cotizacion_id: service.cotizacion_id || appState.activeQuoteId || null,
+    tipo: service.tipo || service.categoria || "hotel",
+    categoria: service.categoria || service.tipo || "hotel",
+    descripcion: service.descripcion || "",
+    observaciones: service.observaciones || "",
+    moneda: service.moneda || "USD",
+    precio_adulto: Number(precioAdulto || 0),
+    precio_menor: Number(precioMenor || 0),
+    adultos,
+    menores,
+    subtotal: Number(subtotalRaw || 0),
+    metadata
+  };
+}
+
+function parseServiceSnapshot(snapshot) {
+  if (!snapshot) return null;
+
+  try {
+    return normalizeServiceData(JSON.parse(snapshot));
+  } catch {
+    return null;
+  }
+}
+
+function capitalize(value) {
+  const str = String(value || "");
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 function escapeHtml(value) {

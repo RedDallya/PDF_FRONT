@@ -31,6 +31,9 @@
           <button type="button" class="btn btn-sm btn-outline-primary" data-main-tab="inicio">
             Página principal
           </button>
+          <button type="button" class="btn btn-sm btn-outline-primary" data-main-tab="config">
+            Configuración
+          </button>
         </div>
 
         <div class="d-flex align-items-center gap-2">
@@ -203,7 +206,8 @@
 
             <div class="col-md-2">
               <label class="small">Adjuntos</label>
-              <input type="file" class="form-control form-control-sm" multiple accept=".pdf,.jpg,.jpeg,.png" data-doc="files">
+              <input type="file" class="form-control form-control-sm" multiple accept=".pdf,.jpg,.jpeg,.png"
+                data-doc="files">
             </div>
 
             <div class="col-12">
@@ -403,13 +407,14 @@
               <button class="btn btn-sm btn-primary" data-quote-save>
                 Guardar cotización
               </button>
+
+              <button class="btn btn-sm btn-outline-success" data-quote-new>
+                Nueva cotización
+              </button>
             </div>
 
             <div id="travel-header" class="mt-3"></div>
             <div id="quotes-list" class="mt-3"></div>
-            <button id="btn-ver-viaje" class="btn btn-sm btn-outline-secondary mt-2">
-              Ver datos
-            </button>
           </div>
         </div>
 
@@ -484,51 +489,87 @@
         <section class="mt-4" data-pdf-management>
           <h4 class="mb-3">Documentos PDF de la Cotización</h4>
 
-          <div class="d-flex flex-wrap gap-2 mb-3">
-            <button type="button" class="btn btn-sm btn-outline-primary" data-pdf-generate data-pdf-type="partial">
-              Generar PDF parcial (sin precios)
-            </button>
+          <div class="row g-3 align-items-end mb-3">
+            <div class="col-md-5">
+              <label class="small">Perfil de PDF</label>
+              <select class="form-select form-select-sm" data-pdf-profile-select>
+                <option value="">Seleccionar perfil</option>
+              </select>
+            </div>
 
-            <button type="button" class="btn btn-sm btn-outline-success" data-pdf-generate data-pdf-type="full">
-              Generar PDF detallado (con precios)
-            </button>
+            <div class="col-md-7">
+              <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-sm btn-outline-primary" data-pdf-generate data-pdf-type="partial">
+                  Generar PDF parcial (sin precios)
+                </button>
+
+                <button type="button" class="btn btn-sm btn-outline-success" data-pdf-generate data-pdf-type="full">
+                  Generar PDF detallado (con precios)
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 
         <section class="card p-3 mt-4" data-pdf-builder>
           <h4 class="mb-3">PDF Builder</h4>
 
+          <div class="border rounded p-3 mb-3 bg-light">
+            <div class="small text-muted mb-1">Cotización activa para armar el PDF</div>
+            <div data-pdf-active-summary class="small">
+              Seleccioná una cotización para ver el contenido disponible.
+            </div>
+          </div>
+
           <div class="mb-2 d-flex gap-2 flex-wrap">
-            <button class="btn btn-sm btn-outline-primary" data-add-pdf-section="observaciones">
-              + Observaciones
+            <button class="btn btn-sm btn-outline-primary" data-add-pdf-section="titulo">
+              + Título
             </button>
 
-            <button class="btn btn-sm btn-outline-primary" data-add-pdf-section="hotel">
-              + Hotel
+            <button class="btn btn-sm btn-outline-primary" data-add-pdf-section="cliente">
+              + Cliente
             </button>
 
-            <button class="btn btn-sm btn-outline-primary" data-add-pdf-section="aereo">
-              + Pasajes Aéreos
+            <button class="btn btn-sm btn-outline-primary" data-add-pdf-section="viaje">
+              + Viaje
             </button>
 
-            <button class="btn btn-sm btn-outline-primary" data-add-pdf-section="logo">
-              + Logo
+            <button class="btn btn-sm btn-outline-primary" data-add-pdf-section="servicios">
+              + Servicios
+            </button>
+
+            <button class="btn btn-sm btn-outline-primary" data-add-pdf-section="vouchers">
+              + Vouchers
+            </button>
+
+            <button class="btn btn-sm btn-outline-primary" data-add-pdf-section="operadores">
+              + Operadores
+            </button>
+
+            <button class="btn btn-sm btn-outline-primary" data-add-pdf-section="totales">
+              + Totales
             </button>
 
             <button class="btn btn-sm btn-outline-primary" data-add-pdf-section="mensaje">
               + Mensaje
             </button>
 
-            <button class="btn btn-sm btn-outline-primary" data-add-pdf-section="titulo">
-              + Título de viaje
-            </button>
-
-            <button class="btn btn-sm btn-outline-primary" data-add-pdf-section="totales">
-              + Totales
+            <button class="btn btn-sm btn-outline-primary" data-add-pdf-section="observaciones">
+              + Observaciones
             </button>
           </div>
 
           <div class="pdf-sections-list" data-pdf-sections-list></div>
+
+          <div class="mt-3 d-flex gap-2">
+            <button class="btn btn-sm btn-success" data-pdf-save-all>
+              Guardar estructura PDF
+            </button>
+
+            <button class="btn btn-sm btn-outline-secondary" data-pdf-reset>
+              Resetear secciones
+            </button>
+          </div>
         </section>
       </section>
 
@@ -586,7 +627,8 @@
 
           <div class="col-md-4">
             <label class="small">Versión del itinerario</label>
-            <input type="text" class="form-control form-control-sm" placeholder="Ej: v1.0 / v2.1" data-itinerary="version">
+            <input type="text" class="form-control form-control-sm" placeholder="Ej: v1.0 / v2.1"
+              data-itinerary="version">
           </div>
 
           <div class="col-md-4">
@@ -609,260 +651,378 @@
             + Nueva versión
           </button>
         </div>
+
+        <div class="mt-3" data-itinerary-preview>
+          <div class="small text-muted">
+            No hay itinerario guardado para este viaje.
+          </div>
+        </div>
       </section>
 
     </section>
-  </main>
+    <script type="module" src="api.js"></script>
+    <script type="module" src="app.js"></script>
+    <script type="module" src="clients.js"></script>
+    <script type="module" src="travel-tabs.js"></script>
+    <script type="module" src="quotes.js"></script>
 
-  <script type="module" src="api.js"></script>
-  <script type="module" src="app.js"></script>
-  <script type="module" src="clients.js"></script>
-  <script type="module" src="travel-tabs.js"></script>
-  <script type="module" src="quotes.js"></script>
-
-  <template id="service-template">
-    <div class="service-card" data-service-id="">
-      <div class="service-header mb-2 d-flex gap-2">
-        <select class="form-select form-select-sm" data-field="tipo">
-          <option value="" selected>Tipo de servicio</option>
-          <option value="hotel">Hotel</option>
-          <option value="aereo">Pasaje Aéreo</option>
-          <option value="excursion">Excursión</option>
-          <option value="asistencia">Asistencia al Viajero</option>
-          <option value="crucero">Crucero</option>
-          <option value="traslado">Traslado</option>
-          <option value="tren">Tren</option>
-          <option value="auto">Alquiler de Auto</option>
-          <option value="gastos">Gastos / Fees</option>
-        </select>
-
-        <button type="button" class="btn btn-sm btn-outline-danger" data-remove>
-          ✕
-        </button>
-      </div>
-
-      <input class="form-control form-control-sm mb-2" placeholder="Descripción detallada" data-field="descripcion">
-
-      <textarea class="form-control form-control-sm mb-2" placeholder="Observaciones" data-field="observaciones"></textarea>
-
-      <input type="file" class="form-control form-control-sm mb-2" multiple data-field="adjuntos">
-
-      <div class="row g-2 mb-2">
-        <div class="col-md-3">
-          <select class="form-select form-select-sm" data-field="moneda">
-            <option>USD</option>
-            <option>ARS</option>
+    <template id="service-template">
+      <div class="service-card" data-service-id="">
+        <div class="service-header mb-2 d-flex gap-2">
+          <select class="form-select form-select-sm" data-field="tipo">
+            <option value="" selected>Tipo de servicio</option>
+            <option value="hotel">Hotel</option>
+            <option value="aereo">Pasaje Aéreo</option>
+            <option value="excursion">Excursión</option>
+            <option value="asistencia">Asistencia al Viajero</option>
+            <option value="crucero">Crucero</option>
+            <option value="traslado">Traslado</option>
+            <option value="tren">Tren</option>
+            <option value="auto">Alquiler de Auto</option>
+            <option value="gastos">Gastos / Fees</option>
           </select>
+
+          <button type="button" class="btn btn-sm btn-outline-danger" data-remove>
+            ✕
+          </button>
         </div>
 
-        <div class="col-md-3">
-          <input type="number" class="form-control form-control-sm" placeholder="Precio por persona" data-field="precio">
-        </div>
+        <input class="form-control form-control-sm mb-2" placeholder="Descripción detallada" data-field="descripcion">
 
-        <div class="col-md-2">
-          <input type="number" class="form-control form-control-sm" placeholder="Adultos" data-field="adultos">
-        </div>
+        <textarea class="form-control form-control-sm mb-2" placeholder="Observaciones"
+          data-field="observaciones"></textarea>
 
-        <div class="col-md-2">
-          <input type="number" class="form-control form-control-sm" placeholder="Menores" data-field="menores">
-        </div>
+        <input type="file" class="form-control form-control-sm mb-2" multiple data-field="adjuntos">
 
-        <div class="col-md-2">
-          <input type="number" class="form-control form-control-sm" placeholder="Subtotal" data-field="subtotal">
-        </div>
-      </div>
-
-      <div class="service-specific hidden" data-specific="hotel">
-        <div class="row g-2">
-          <div class="col-md-6">
-            <label class="small">Check-in</label>
-            <input type="datetime-local" class="form-control form-control-sm">
+        <div class="row g-2 mb-2">
+          <div class="col-md-2">
+            <label class="small d-block mb-1">Moneda</label>
+            <select class="form-select form-select-sm" data-field="moneda">
+              <option>USD</option>
+              <option>ARS</option>
+            </select>
           </div>
-          <div class="col-md-6">
-            <label class="small">Check-out</label>
-            <input type="datetime-local" class="form-control form-control-sm">
+
+          <div class="col-md-2">
+            <label class="small d-block mb-1">Precio adulto</label>
+            <input type="number" class="form-control form-control-sm" placeholder="0.00" data-field="precio_adulto">
+          </div>
+
+          <div class="col-md-2">
+            <label class="small d-block mb-1">Precio menor</label>
+            <input type="number" class="form-control form-control-sm" placeholder="0.00" data-field="precio_menor">
+          </div>
+
+          <div class="col-md-2">
+            <label class="small d-block mb-1">Adultos</label>
+            <input type="number" class="form-control form-control-sm" placeholder="0" data-field="adultos">
+          </div>
+
+          <div class="col-md-2">
+            <label class="small d-block mb-1">Menores</label>
+            <input type="number" class="form-control form-control-sm" placeholder="0" data-field="menores">
+          </div>
+
+          <div class="col-md-2">
+            <label class="small d-block mb-1">Subtotal</label>
+            <input type="number" class="form-control form-control-sm" placeholder="0.00" data-field="subtotal" readonly>
+          </div>
+        </div>
+
+        <div class="service-specific hidden" data-specific="hotel">
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label class="small">Check-in</label>
+              <input type="datetime-local" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-6">
+              <label class="small">Check-out</label>
+              <input type="datetime-local" class="form-control form-control-sm">
+            </div>
+          </div>
+        </div>
+
+        <div class="service-specific hidden" data-specific="aereo">
+          <div class="row g-2">
+            <div class="col-md-3"><input class="form-control form-control-sm" placeholder="Aerolínea"></div>
+            <div class="col-md-3"><input class="form-control form-control-sm" placeholder="N° Vuelo"></div>
+            <div class="col-md-3"><input type="datetime-local" class="form-control form-control-sm"></div>
+            <div class="col-md-3"><input class="form-control form-control-sm" placeholder="Origen / Destino"></div>
+          </div>
+        </div>
+
+        <div class="service-specific hidden" data-specific="tren">
+          <div class="row g-2">
+            <div class="col-md-6"><input type="datetime-local" class="form-control form-control-sm"></div>
+            <div class="col-md-6"><input class="form-control form-control-sm" placeholder="Lugar de salida / llegada">
+            </div>
+          </div>
+        </div>
+
+        <div class="service-specific hidden" data-specific="auto">
+          <input class="form-control form-control-sm mb-2" placeholder="Proveedor">
+          <input class="form-control form-control-sm mb-2" placeholder="Tipo de vehículo">
+          <input class="form-control form-control-sm mb-2" placeholder="Coberturas incluidas">
+        </div>
+      </div>
+    </template>
+
+    <template id="pdf-item-template">
+      <div class="pdf-list mt-3" data-pdf-list>
+        <div class="pdf-item border rounded p-3 mb-2 d-flex justify-content-between align-items-center">
+          <div>
+            <strong data-pdf-name></strong>
+            <div class="small text-muted" data-pdf-meta></div>
+          </div>
+
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-sm btn-outline-secondary" data-pdf-view>Ver</button>
+            <button class="btn btn-sm btn-outline-primary" data-pdf-download>Descargar</button>
+            <button class="btn btn-sm btn-outline-warning" data-pdf-replace>Reemplazar</button>
+            <button class="btn btn-sm btn-outline-danger" data-pdf-delete>Eliminar</button>
+            <button class="btn btn-sm btn-outline-success" data-pdf-whatsapp>WhatsApp</button>
+            <button class="btn btn-sm btn-outline-dark" data-pdf-email>Email</button>
           </div>
         </div>
       </div>
+    </template>
 
-      <div class="service-specific hidden" data-specific="aereo">
-        <div class="row g-2">
-          <div class="col-md-3"><input class="form-control form-control-sm" placeholder="Aerolínea"></div>
-          <div class="col-md-3"><input class="form-control form-control-sm" placeholder="N° Vuelo"></div>
-          <div class="col-md-3"><input type="datetime-local" class="form-control form-control-sm"></div>
-          <div class="col-md-3"><input class="form-control form-control-sm" placeholder="Origen / Destino"></div>
+    <template id="pdf-section-template">
+      <div class="pdf-section border rounded p-2 mb-2">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <strong data-pdf-section-title></strong>
+
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-secondary" data-move-up>↑</button>
+            <button class="btn btn-outline-secondary" data-move-down>↓</button>
+            <button class="btn btn-outline-danger" data-delete>✕</button>
+          </div>
+        </div>
+
+        <div data-pdf-section-content></div>
+      </div>
+    </template>
+
+    <template id="pdf-section-observaciones">
+      <div>
+        <label class="small">Texto</label>
+        <textarea class="form-control form-control-sm" rows="3" data-field="texto"></textarea>
+      </div>
+    </template>
+
+    <template id="pdf-section-hotel">
+      <div class="row g-2">
+        <div class="col-md-6">
+          <label class="small">Hotel</label>
+          <input class="form-control form-control-sm" data-field="hotel">
+        </div>
+
+        <div class="col-md-6">
+          <label class="small">Habitación</label>
+          <input class="form-control form-control-sm" data-field="habitacion">
+        </div>
+
+        <div class="col-md-6">
+          <label class="small">Check-in</label>
+          <input type="date" class="form-control form-control-sm" data-field="checkin">
+        </div>
+
+        <div class="col-md-6">
+          <label class="small">Check-out</label>
+          <input type="date" class="form-control form-control-sm" data-field="checkout">
         </div>
       </div>
+    </template>
 
-      <div class="service-specific hidden" data-specific="tren">
-        <div class="row g-2">
-          <div class="col-md-6"><input type="datetime-local" class="form-control form-control-sm"></div>
-          <div class="col-md-6"><input class="form-control form-control-sm" placeholder="Lugar de salida / llegada"></div>
+    <template id="pdf-section-aereo">
+      <div class="row g-2">
+        <div class="col-md-6">
+          <label class="small">Aerolínea</label>
+          <input class="form-control form-control-sm" data-field="aerolinea">
+        </div>
+
+        <div class="col-md-6">
+          <label class="small">Vuelo</label>
+          <input class="form-control form-control-sm" data-field="vuelo">
+        </div>
+
+        <div class="col-md-6">
+          <label class="small">Origen</label>
+          <input class="form-control form-control-sm" data-field="origen">
+        </div>
+
+        <div class="col-md-6">
+          <label class="small">Destino</label>
+          <input class="form-control form-control-sm" data-field="destino">
+        </div>
+
+        <div class="col-md-6">
+          <label class="small">Fecha</label>
+          <input type="date" class="form-control form-control-sm" data-field="fecha">
         </div>
       </div>
+    </template>
 
-      <div class="service-specific hidden" data-specific="auto">
-        <input class="form-control form-control-sm mb-2" placeholder="Proveedor">
-        <input class="form-control form-control-sm mb-2" placeholder="Tipo de vehículo">
-        <input class="form-control form-control-sm mb-2" placeholder="Coberturas incluidas">
+    <template id="pdf-section-totales">
+      <div class="text-muted small">
+        Este bloque se genera automáticamente con los totales reales.
       </div>
-    </div>
-  </template>
+    </template>
 
-  <template id="pdf-item-template">
-    <div class="pdf-list mt-3" data-pdf-list>
-      <div class="pdf-item border rounded p-3 mb-2 d-flex justify-content-between align-items-center">
-        <div>
-          <strong data-pdf-name></strong>
-          <div class="small text-muted" data-pdf-meta></div>
+    <template id="voucher-template">
+      <div class="card p-3 mb-3" data-voucher-card>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Tipo</label>
+            <input class="form-control" data-voucher="tipo" placeholder="Voucher hotel / Pasaje aéreo / Tren..." />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Servicio</label>
+            <input class="form-control" data-voucher="servicio" placeholder="Detalle del servicio" />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Proveedor</label>
+            <input class="form-control" data-voucher="proveedor" placeholder="Proveedor" />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Fecha asociada</label>
+            <input type="date" class="form-control" data-voucher="fecha_asociada" />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Visible cliente</label>
+            <select class="form-select" data-voucher="visible_cliente">
+              <option value="0">No</option>
+              <option value="1">Sí</option>
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Adjuntos</label>
+            <input type="file" class="form-control" data-voucher="files" multiple />
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Notas</label>
+            <textarea class="form-control" rows="3" data-voucher="notes"></textarea>
+          </div>
+
+          <div class="col-12">
+            <div data-voucher-files-list></div>
+          </div>
+
+          <div class="col-12 d-flex gap-2">
+            <button type="button" class="btn btn-primary" data-voucher-save>Guardar voucher</button>
+            <button type="button" class="btn btn-outline-danger" data-voucher-delete>Eliminar</button>
+          </div>
         </div>
+      </div>
+    </template>
+
+    <section class="card p-4 mb-4 d-none" data-view="config">
+
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <h2 class="mb-0">Perfiles de PDF</h2>
 
         <div class="d-flex gap-2 flex-wrap">
-          <button class="btn btn-sm btn-outline-secondary" data-pdf-view>Ver</button>
-          <button class="btn btn-sm btn-outline-primary" data-pdf-download>Descargar</button>
-          <button class="btn btn-sm btn-outline-warning" data-pdf-replace>Reemplazar</button>
-          <button class="btn btn-sm btn-outline-danger" data-pdf-delete>Eliminar</button>
-          <button class="btn btn-sm btn-outline-success" data-pdf-whatsapp>WhatsApp</button>
-          <button class="btn btn-sm btn-outline-dark" data-pdf-email>Email</button>
+          <button class="btn btn-sm btn-outline-primary" data-config-new>
+            Nuevo perfil
+          </button>
+
+          <button class="btn btn-sm btn-outline-danger" data-config-delete>
+            Eliminar perfil
+          </button>
         </div>
-      </div>
-    </div>
-  </template>
-
-  <template id="pdf-section-template">
-    <div class="pdf-section border rounded p-2 mb-2">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <strong data-pdf-section-title></strong>
-
-        <div class="btn-group btn-group-sm">
-          <button class="btn btn-outline-secondary" data-move-up>↑</button>
-          <button class="btn btn-outline-secondary" data-move-down>↓</button>
-          <button class="btn btn-outline-danger" data-delete>✕</button>
-        </div>
+        
       </div>
 
-      <textarea class="form-control form-control-sm" rows="3" data-pdf-section-content placeholder="Contenido del bloque"></textarea>
-    </div>
-  </template>
-
-  <template id="pdf-section-observaciones">
-    <div>
-      <label class="small">Texto</label>
-      <textarea class="form-control form-control-sm" rows="3" data-field="texto"></textarea>
-    </div>
-  </template>
-
-  <template id="pdf-section-hotel">
-    <div class="row g-2">
-      <div class="col-md-6">
-        <label class="small">Hotel</label>
-        <input class="form-control form-control-sm" data-field="hotel">
-      </div>
-
-      <div class="col-md-6">
-        <label class="small">Habitación</label>
-        <input class="form-control form-control-sm" data-field="habitacion">
-      </div>
-
-      <div class="col-md-6">
-        <label class="small">Check-in</label>
-        <input type="date" class="form-control form-control-sm" data-field="checkin">
-      </div>
-
-      <div class="col-md-6">
-        <label class="small">Check-out</label>
-        <input type="date" class="form-control form-control-sm" data-field="checkout">
-      </div>
-    </div>
-  </template>
-
-  <template id="pdf-section-aereo">
-    <div class="row g-2">
-      <div class="col-md-6">
-        <label class="small">Aerolínea</label>
-        <input class="form-control form-control-sm" data-field="aerolinea">
-      </div>
-
-      <div class="col-md-6">
-        <label class="small">Vuelo</label>
-        <input class="form-control form-control-sm" data-field="vuelo">
-      </div>
-
-      <div class="col-md-6">
-        <label class="small">Origen</label>
-        <input class="form-control form-control-sm" data-field="origen">
-      </div>
-
-      <div class="col-md-6">
-        <label class="small">Destino</label>
-        <input class="form-control form-control-sm" data-field="destino">
-      </div>
-
-      <div class="col-md-6">
-        <label class="small">Fecha</label>
-        <input type="date" class="form-control form-control-sm" data-field="fecha">
-      </div>
-    </div>
-  </template>
-
-  <template id="pdf-section-totales">
-    <div class="text-muted small">
-      Este bloque se genera automáticamente con los totales reales.
-    </div>
-  </template>
-
-  <template id="voucher-template">
-    <div class="card p-3 mb-3" data-voucher-card>
-      <div class="row g-3">
-        <div class="col-md-4">
-          <label class="form-label">Tipo</label>
-          <input class="form-control" data-voucher="tipo" placeholder="Voucher hotel / Pasaje aéreo / Tren..." />
-        </div>
-
-        <div class="col-md-4">
-          <label class="form-label">Servicio</label>
-          <input class="form-control" data-voucher="servicio" placeholder="Detalle del servicio" />
-        </div>
-
-        <div class="col-md-4">
-          <label class="form-label">Proveedor</label>
-          <input class="form-control" data-voucher="proveedor" placeholder="Proveedor" />
-        </div>
-
-        <div class="col-md-4">
-          <label class="form-label">Fecha asociada</label>
-          <input type="date" class="form-control" data-voucher="fecha_asociada" />
-        </div>
-
-        <div class="col-md-4">
-          <label class="form-label">Visible cliente</label>
-          <select class="form-select" data-voucher="visible_cliente">
-            <option value="0">No</option>
-            <option value="1">Sí</option>
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <label class="small">Seleccionar perfil</label>
+          <select class="form-select" data-config-profile-select>
+            <option value="">Seleccionar perfil</option>
           </select>
         </div>
 
-        <div class="col-md-4">
-          <label class="form-label">Adjuntos</label>
-          <input type="file" class="form-control" data-voucher="files" multiple />
-        </div>
-
-        <div class="col-12">
-          <label class="form-label">Notas</label>
-          <textarea class="form-control" rows="3" data-voucher="notes"></textarea>
-        </div>
-
-        <div class="col-12">
-          <div data-voucher-files-list></div>
-        </div>
-
-        <div class="col-12 d-flex gap-2">
-          <button type="button" class="btn btn-primary" data-voucher-save>Guardar voucher</button>
-          <button type="button" class="btn btn-outline-danger" data-voucher-delete>Eliminar</button>
+        <div class="col-md-6">
+          <label class="small">Nombre interno del perfil</label>
+          <input class="form-control" data-config="profile_name" placeholder="Ej: Clásico / Premium / Ana">
         </div>
       </div>
-    </div>
-  </template>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="small">Nombre empresa</label>
+          <input class="form-control" data-config="company_name">
+        </div>
+
+        <div class="col-md-6">
+          <label class="small">Email</label>
+          <input class="form-control" data-config="company_email">
+        </div>
+
+        <div class="col-md-6">
+          <label class="small">Teléfono</label>
+          <input class="form-control" data-config="company_phone">
+        </div>
+
+        <div class="col-md-6">
+          <label class="small">Dirección</label>
+          <input class="form-control" data-config="company_address">
+        </div>
+
+        <div class="col-md-6">
+          <label class="small">Sitio web</label>
+          <input class="form-control" data-config="company_website">
+        </div>
+
+        <div class="col-md-6">
+          <label class="small">Tipo de diseño</label>
+          <select class="form-select" data-config="layout_type">
+            <option value="classic">Classic</option>
+            <option value="proposal">Proposal</option>
+          </select>
+        </div>
+
+        <div class="col-12">
+          <label class="small">Footer PDF</label>
+          <textarea class="form-control" rows="2" data-config="pdf_footer"></textarea>
+        </div>
+
+        <div class="col-md-6">
+          <label class="small">Logo</label>
+          <input type="file" class="form-control" data-config-logo>
+        </div>
+
+        <div class="col-md-6">
+          <label class="small">Preview logo</label>
+          <div class="config-logo-preview-box">
+            <img data-config-logo-preview style="max-height:70px; max-width:100%; object-fit:contain;">
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="small">Imagen de portada</label>
+          <input type="file" class="form-control" data-config-cover>
+        </div>
+
+        <div class="col-md-6">
+          <label class="small">Preview portada</label>
+          <div class="config-logo-preview-box">
+            <img data-config-cover-preview style="max-height:90px; max-width:100%; object-fit:contain;">
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 d-flex gap-2 flex-wrap">
+        <button class="btn btn-primary" data-config-save>Guardar</button>
+        <button class="btn btn-outline-secondary" data-config-load>Recargar</button>
+      </div>
+
+    </section>
 </body>
 
 </html>
